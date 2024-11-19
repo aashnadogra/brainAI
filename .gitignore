@@ -1,0 +1,5 @@
+prediction/venv/
+
+prediction/brain_tumor_classifier.h5
+
+prediction/path_to_combined_dataset
