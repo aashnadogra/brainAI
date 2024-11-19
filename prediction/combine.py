@@ -2,7 +2,7 @@ import os
 import shutil
 
 # Paths to original folders
-train_dir = 'C:\Users\Aashna Dogra\Downloads\brainAI-IMD-main\brainAI-IMD-main\brain-tumor-mri-dataset\Testing'
+train_dir = 'C:\Users\Aashna Dogra\Downloads\brainAI-IMD-main\brainAI-IMD-main\brain-tumor-mri-dataset\Training'
 test_dir = 'C:\Users\Aashna Dogra\Downloads\brainAI-IMD-main\brainAI-IMD-main\brain-tumor-mri-dataset\Testing'
 
 # Create combined dataset folder
