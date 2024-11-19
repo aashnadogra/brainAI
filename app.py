@@ -1,10 +1,36 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 from io import BytesIO
+from xai import limework
+import tensorflow as tf
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
+from tensorflow.keras import Model
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing import image
+from PIL import Image
+import os
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+app.secret_key = 'your_secret_key'
+
+# Function to check allowed file extensions
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+
+
 
 model = tf.keras.models.load_model('prediction/brain_tumor_classifier.h5')
 
@@ -13,6 +39,8 @@ class_labels = ['glioma', 'meningioma', 'pituitary', 'notumor']
 
 # Confidence threshold for detecting unknown tumors
 CONFIDENCE_THRESHOLD = 0.50
+
+
 
 @app.route('/')
 def home():
@@ -37,6 +65,10 @@ def detection():
 @app.route('/gan_dataset')
 def gan_dataset():
     return render_template('gan_dataset.html')
+
+@app.route('/xai')
+def xai():
+    return render_template('xai.html')
 
 
 @app.route('/predict', methods=['POST'])
@@ -70,6 +102,56 @@ def predict():
 
     return render_template('detection_output.html', result=result)
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'image_files[]' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+
+    files = request.files.getlist('image_files[]')
+
+    # Debugging: Print the names of the files being uploaded
+    if not files:
+        flash('No selected file')
+        return redirect(request.url)
+
+    uploaded_files = []
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            uploaded_files.append(file_path)
+        else:
+            flash('Invalid file type')
+            return redirect(request.url)
+
+    # Process the images
+    if uploaded_files:
+        try:
+            explanations = []
+            for file_path in uploaded_files:
+                explanation = limework.apply_gradcam_and_lime(
+                    file_path, limework.model)  # Assuming limework handles processing
+                explanations.append(explanation)
+
+            # If explanations are generated successfully, return them
+            return render_template('xai.html', explanations=explanations)
+        except Exception as e:
+            flash(f"Error processing the image(s): {str(e)}")
+            return redirect(request.url)
+
+    # If no files were processed, flash an error
+    flash('No valid images processed')
+    return redirect(request.url)
+
+
+if __name__ == '__main__':
+    # Ensure upload folder exists
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+
+    app.run(debug=True)
