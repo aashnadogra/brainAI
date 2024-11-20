@@ -1,4 +1,4 @@
-### brainAI
+# brainAI
 **brainAI** is an advanced web application designed to assist in the detection of brain tumors using medical images, specifically MRI scans. The project combines state-of-the-art deep learning techniques, including **Convolutional Neural Networks (CNN)** for tumor classification and **Generative Adversarial Networks (GANs)** for data augmentation, to enhance the accuracy and reliability of predictions. Additionally, the application integrates **Explainable AI (XAI)** methods to provide interpretable and transparent model predictions, making it especially valuable for healthcare professionals.
 
 ## Key Features
